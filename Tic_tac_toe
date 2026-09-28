@@ -1,0 +1,86 @@
+class TicTacToeBranchExplorer:
+    def __init__(self, initial_board):
+        if isinstance(initial_board[0], list):
+            self.initial_board = [cell for row in initial_board for cell in row]
+        else:
+            self.initial_board = list(initial_board)
+
+        self.terminal_leaves = 0
+
+    def check_winner(self, board):
+        lines = [
+            (0, 1, 2), (3, 4, 5), (6, 7, 8),
+            (0, 3, 6), (1, 4, 7), (2, 5, 8),
+            (0, 4, 8), (2, 4, 6)
+        ]
+        for a, b, c in lines:
+            if board[a] != ' ' and board[a] == board[b] == board[c]:
+                return board[a]
+        if ' ' not in board:
+            return 'Draw'
+        return None
+
+    def print_board(self, board, prefix=""):
+        for i in range(0, 9, 3):
+            row = [board[i], board[i+1], board[i+2]]
+            print(f"{prefix}  {row[0]} | {row[1]} | {row[2]} ")
+            if i < 6:
+                print(f"{prefix} ---|---|---")
+        print()
+
+    def explore(self, board, player, path_cost=0, branch_path=""):
+        winner = self.check_winner(board)
+        indent = "    " * path_cost
+
+        if winner is not None:
+            self.terminal_leaves += 1
+            print(f"{indent}========================================")
+            outcome = "Draw!" if winner == "Draw" else f"Winner is {winner}!"
+            print(f"{indent}GAME OVER: {outcome}")
+            print(f"{indent}Branch History: {branch_path}")
+            print(f"{indent}Final Path Cost: {path_cost}")
+            print(f"{indent}========================================\n")
+            return
+
+        empty_indices = [i for i, cell in enumerate(board) if cell == ' ']
+        next_player = 'O' if player == 'X' else 'X'
+
+        for move in empty_indices:
+            r, c = divmod(move, 3)
+            new_board = list(board)
+            new_board[move] = player
+            new_cost = path_cost + 1
+
+            step_desc = f"{player} at ({r}, {c})"
+            current_history = f"{branch_path} -> {step_desc}" if branch_path else step_desc
+
+            print(f"{indent}[Branch] Step {new_cost}: Player '{player}' plays at ({r}, {c})")
+            print(f"{indent}Path Cost: {new_cost}")
+            self.print_board(new_board, prefix=indent)
+
+
+            self.explore(new_board, next_player, new_cost, current_history)
+
+    def run(self):
+        print("=" * 45)
+        print("   Tic Tac Toe SIMULATION")
+        print("=" * 45)
+        print("Initial Input State (Path Cost = 0):\n")
+        self.print_board(self.initial_board)
+
+        self.explore(self.initial_board, player='X', path_cost=0)
+
+        print("=" * 45)
+        print(f"Total Terminal Scenarios Reached: {self.terminal_leaves}")
+        print("=" * 45)
+
+
+if __name__ == "__main__":
+    input_board = [
+        ['O', ' ', 'X'],
+        ['X', ' ', ' '],
+        ['X', 'O', 'O']
+    ]
+
+    explorer = TicTacToeBranchExplorer(input_board)
+    explorer.run()
