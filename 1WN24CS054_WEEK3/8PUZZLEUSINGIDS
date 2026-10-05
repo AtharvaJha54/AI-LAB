@@ -1,0 +1,96 @@
+class PuzzleNode:
+
+    def __init__(self, board, parent=None, move=None, depth=0):
+        self.board = board
+        self.parent = parent
+        self.move = move
+        self.depth = depth
+        self.blank_idx = board.index(0)
+
+    def get_successors(self):
+        successors = []
+        r, c = divmod(self.blank_idx, 3)
+        moves = [
+            (-1, 0, "UP"),
+            (1, 0, "DOWN"),
+            (0, -1, "LEFT"),
+            (0, 1, "RIGHT"),
+        ]
+
+        for dr, dc, m in moves:
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < 3 and 0 <= nc < 3:
+                n_idx = nr * 3 + nc
+                new_board = list(self.board)
+                new_board[self.blank_idx], new_board[n_idx] = (
+                    new_board[n_idx],
+                    new_board[self.blank_idx],
+                )
+                successors.append(
+                    PuzzleNode(
+                        new_board, parent=self, move=m, depth=self.depth + 1
+                    )
+                )
+        return successors
+
+
+def depth_limited_search(node, goal, limit, visited):
+    if node.board == goal:
+        return node
+
+    if node.depth == limit:
+        return None
+
+    board_tuple = tuple(node.board)
+    visited[board_tuple] = node.depth
+
+    for succ in node.get_successors():
+        succ_tuple = tuple(succ.board)
+
+        if succ_tuple not in visited or succ.depth < visited[succ_tuple]:
+            result = depth_limited_search(succ, goal, limit, visited)
+            if result:
+                return result
+
+    return None
+
+
+def iterative_deepening_search(start_board, goal_board, max_depth=50):
+    for limit in range(max_depth + 1):
+        print(f"--- Searching at Depth Limit: {limit} ---")
+
+        visited = {}
+        root = PuzzleNode(start_board, depth=0)
+
+        result = depth_limited_search(root, goal_board, limit, visited)
+        if result:
+            return result
+    return None
+
+
+def print_solution(node):
+    path = []
+    curr = node
+    while curr:
+        path.append(curr)
+        curr = curr.parent
+    path.reverse()
+
+    for step, n in enumerate(path):
+        print(f"Step {step} | Move: {n.move} | Node Depth: {n.depth}")
+        for i in range(0, 9, 3):
+            print(n.board[i : i + 3])
+        print()
+
+
+if __name__ == "__main__":
+    initial_state = [1, 2, 3, 0, 4, 6, 7, 5, 8]
+    goal_state = [1, 2, 3, 4, 5, 6, 7, 8, 0]
+
+    solution = iterative_deepening_search(initial_state, goal_state)
+
+    if solution:
+        print("\nGoal found!")
+        print_solution(solution)
+    else:
+        print("\nNo solution found within the maximum depth limit.")
