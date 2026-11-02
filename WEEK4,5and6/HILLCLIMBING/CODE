@@ -1,36 +1,26 @@
 
-import random
-
 N = 4
 
-
-def calculateObjective(state):
-    attacking = 0
+# Calculate attacking pairs
+def calculateCost(state):
+    cost = 0
 
     for i in range(N):
         for j in range(i + 1, N):
 
-            if state[i] == state[j]:
-                attacking += 1
-
+            # Same diagonal
             if abs(state[i] - state[j]) == abs(i - j):
-                attacking += 1
+                cost += 1
 
-    return attacking
+    return cost
 
 
-def generateBoard(state):
+# Generate chessboard
+def printBoard(state):
     board = [['.' for j in range(N)] for i in range(N)]
 
     for i in range(N):
         board[state[i]][i] = 'Q'
-
-    return board
-
-
-
-def printBoard(state):
-    board = generateBoard(state)
 
     for row in board:
         print(" ".join(row))
@@ -38,117 +28,111 @@ def printBoard(state):
     print()
 
 
+# Generate all neighbours by swapping queens
+def getNeighbours(state):
 
-def getNeighbour(state):
-    bestState = state.copy()
-    bestObjective = calculateObjective(state)
-
-    neighbour = state.copy()
+    neighbours = []
 
     for i in range(N):
-        originalRow = state[i]
+        for j in range(i + 1, N):
 
-        for j in range(N):
+            neighbour = state.copy()
 
-            if j != originalRow:
+            # Swap two queens
+            neighbour[i], neighbour[j] = neighbour[j], neighbour[i]
 
-                neighbour[i] = j
-                cost = calculateObjective(neighbour)
+            cost = calculateCost(neighbour)
 
-                if cost < bestObjective:
-                    bestObjective = cost
-                    bestState = neighbour.copy()
+            neighbours.append((cost, i, j, neighbour))
 
-            neighbour[i] = originalRow
-
-    return bestState, bestObjective
+    return neighbours
 
 
-
+# Hill Climbing Algorithm
 def hillClimbing(state):
 
     step = 1
 
     while True:
 
-        current = calculateObjective(state)
+        currentCost = calculateCost(state)
 
-        print("\nStep:", step)
+        print("\n========== STEP", step, "==========")
         print("Current State:", state)
-        print("Current Cost:", current)
+        print("Current Cost:", currentCost)
 
-        print("Current Chessboard:")
+        print("\nCurrent Chessboard:")
         printBoard(state)
 
-        if current == 0:
-            print("Goal State Reached!")
-            return True, state
+        # Goal test
+        if currentCost == 0:
+            print("GOAL STATE REACHED!")
+            return state
 
-        oldState = state.copy()
+        # Generate neighbours
+        neighbours = getNeighbours(state)
 
-  
-        state, neighbourCost = getNeighbour(state)
-
-
-        if oldState == state:
-            print("No better neighbour found!")
-            print("Reached Local Minimum.")
-            return False, state
-
-        print("Selected Neighbour:", state)
-        print("Neighbour Cost:", neighbourCost)
-        print("Selected Neighbour Chessboard:")
-        printBoard(state)
-
+        print("NEIGHBOUR COST CALCULATIONS:")
         print("--------------------------------")
+
+        for cost, i, j, neighbour in neighbours:
+
+            print("Swap (x" + str(i) + ", x" + str(j) + ")")
+            print("Neighbour:", neighbour)
+            print("Cost:", cost)
+            print()
+
+        # Select minimum cost neighbour
+        # Tie-breaking: smallest column pair
+        best = min(neighbours, key=lambda x: (x[0], x[1], x[2]))
+
+        bestCost, i, j, bestState = best
+
+        print("SELECTED NEIGHBOUR:")
+        print("Swapped Queens: (x" + str(i) + ", x" + str(j) + ")")
+        print("Selected State:", bestState)
+        print("Selected Cost:", bestCost)
+
+        # Check for local minimum
+        if bestCost >= currentCost:
+            print("\nNo better neighbour found!")
+            print("Hill Climbing Terminated.")
+            return state
+
+        # Move to selected neighbour
+        state = bestState
+
+        print("\nSelected Chessboard:")
+        printBoard(state)
 
         step += 1
 
 
-
+# Main Function
 def main():
 
-
+    # Initial state given in observation
     state = [3, 1, 2, 0]
 
-    print("========== INITIAL STATE ==========")
+    print("========== 4 QUEENS HILL CLIMBING ==========")
+
     print("Initial State:", state)
-    print("Initial Cost:", calculateObjective(state))
+    print("Initial Cost:", calculateCost(state))
 
     print("\nInitial Chessboard:")
     printBoard(state)
 
- 
-    result, state = hillClimbing(state)
+    # Apply Hill Climbing
+    result = hillClimbing(state)
 
+    # Final result
+    print("\n========== FINAL SOLUTION ==========")
 
-    restart = 1
+    print("Final State:", result)
+    print("Final Cost:", calculateCost(result))
 
-    while not result:
-
-        print("\n========== RANDOM RESTART", restart, "==========")
-
-        state = [random.randint(0, N - 1)
-                 for i in range(N)]
-
-        print("New Initial State:", state)
-        print("New Initial Cost:", calculateObjective(state))
-
-        print("New Initial Chessboard:")
-        printBoard(state)
-
-        result, state = hillClimbing(state)
-
-        restart += 1
-
-   
-    print("\n========== SOLUTION FOUND ==========")
-
-    print("Final State:", state)
-    print("Final Objective Cost:", calculateObjective(state))
-
-    print("\nFINAL CHESSBOARD:")
-    printBoard(state)
+    print("\nFinal Chessboard:")
+    printBoard(result)
 
 
 main()
