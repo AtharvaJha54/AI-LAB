@@ -1,0 +1,148 @@
+
+
+
+def PL_TRUE(sentence, model):
+
+    P = model['P']
+    Q = model['Q']
+    R = model['R']
+
+    if sentence == "Q -> P":
+        return (not Q) or P
+
+    elif sentence == "P -> ~Q":
+        return (not P) or (not Q)
+
+    elif sentence == "Q OR R":
+        return Q or R
+
+    elif sentence == "R":
+        return R
+
+    elif sentence == "R -> P":
+        return (not R) or P
+
+    elif sentence == "Q -> R":
+        return (not Q) or R
+
+
+ 
+def KB_TRUE(model):
+
+    return (
+        PL_TRUE("Q -> P", model) and
+        PL_TRUE("P -> ~Q", model) and
+        PL_TRUE("Q OR R", model)
+    )
+
+
+
+def TT_CHECK_ALL(KB, alpha, symbols, model):
+
+    
+    if len(symbols) == 0:
+
+        if KB_TRUE(model):
+            return PL_TRUE(alpha, model)
+
+        else:
+            return True
+
+
+    P = symbols[0]
+    rest = symbols[1:]
+
+   
+    model_true = model.copy()
+    model_true[P] = True
+
+    model_false = model.copy()
+    model_false[P] = False
+
+    return (
+        TT_CHECK_ALL(KB, alpha, rest, model_true)
+        and
+        TT_CHECK_ALL(KB, alpha, rest, model_false)
+    )
+
+
+
+def TT_ENTAILS(KB, alpha):
+
+    symbols = ['P', 'Q', 'R']
+
+    return TT_CHECK_ALL(KB, alpha, symbols, {})
+
+
+
+def main():
+
+    symbols = ['P', 'Q', 'R']
+
+    print("TRUTH TABLE ENUMERATION ALGORITHM")
+    print("--------------------------------------------")
+
+    print("Knowledge Base:")
+    print("1. Q -> P")
+    print("2. P -> ~Q")
+    print("3. Q OR R")
+
+    print("\nTRUTH TABLE")
+    print("----------------------------------------------------------")
+    print("P\tQ\tR\tQ->P\tP->~Q\tQ OR R\tKB")
+    print("----------------------------------------------------------")
+
+    models = []
+
+   
+    for p in [True, False]:
+        for q in [True, False]:
+            for r in [True, False]:
+
+                model = {'P': p, 'Q': q, 'R': r}
+
+                a = PL_TRUE("Q -> P", model)
+                b = PL_TRUE("P -> ~Q", model)
+                c = PL_TRUE("Q OR R", model)
+
+                kb = a and b and c
+
+                print(
+                    f"{str(p):5}\t{str(q):5}\t{str(r):5}\t"
+                    f"{str(a):5}\t{str(b):5}\t"
+                    f"{str(c):6}\t{str(kb):5}"
+                )
+
+                if kb:
+                    models.append(model)
+
+    print("----------------------------------------------------------")
+
+   
+    print("\nMODELS IN WHICH KB IS TRUE:")
+
+    for model in models:
+        print(model)
+
+    print("\nTOTAL MODELS:", len(models))
+
+    
+    print("\nENTAILMENT CHECKING")
+    print("--------------------------------------------")
+
+    queries = [
+        ("R", "KB entails R"),
+        ("R -> P", "KB entails R -> P"),
+        ("Q -> R", "KB entails Q -> R")
+    ]
+
+    for alpha, description in queries:
+
+        result = TT_ENTAILS(None, alpha)
+
+        print(description, ":", result)
+
+    print("--------------------------------------------")
+
+
+main()
