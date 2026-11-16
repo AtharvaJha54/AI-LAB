@@ -1,0 +1,56 @@
+FOL FORWARD CHAINING
+
+Goal: ('Criminal', 'Robert')
+
+INITIAL FACTS
+('American', 'Robert')
+('Enemy', 'A', 'America')
+('Owns', 'A', 'T1')
+('Missile', 'T1')
+
+FORWARD CHAINING STARTED
+
+STEP 1
+Rule applied: 1
+Facts matched:
+  ('Missile', 'T1')
+Substitution: {'x': 'T1'}
+Conclusion: ('Weapon', 'T1')
+
+STEP 2
+Rule applied: 2
+Facts matched:
+  ('Enemy', 'A', 'America')
+Substitution: {'x': 'A'}
+Conclusion: ('Hostile', 'A')
+
+STEP 3
+Rule applied: 3
+Facts matched:
+  ('Missile', 'T1')
+  ('Owns', 'A', 'T1')
+Substitution: {'x': 'T1'}
+Conclusion: ('Sells', 'Robert', 'T1', 'A')
+
+STEP 4
+Rule applied: 4
+Facts matched:
+  ('American', 'Robert')
+  ('Weapon', 'T1')
+  ('Sells', 'Robert', 'T1', 'A')
+  ('Hostile', 'A')
+Substitution: {'p': 'Robert', 'q': 'T1', 'r': 'A'}
+Conclusion: ('Criminal', 'Robert')
+
+FINAL KNOWLEDGE BASE
+('American', 'Robert')
+('Enemy', 'A', 'America')
+('Owns', 'A', 'T1')
+('Missile', 'T1')
+('Weapon', 'T1')
+('Hostile', 'A')
+('Sells', 'Robert', 'T1', 'A')
+('Criminal', 'Robert')
+
+GOAL PROVED: ('Criminal', 'Robert')
+Atharva Jha 1WN24CS054
