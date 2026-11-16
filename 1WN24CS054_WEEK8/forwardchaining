@@ -1,0 +1,104 @@
+
+facts = [
+    ("American", "Robert"),
+    ("Enemy", "A", "America"),
+    ("Owns", "A", "T1"),
+    ("Missile", "T1")
+]
+
+rules = [
+    (["Missile(x)"], "Weapon(x)"),
+    (["Enemy(x,America)"], "Hostile(x)"),
+    (["Missile(x)", "Owns(A,x)"], "Sells(Robert,x,A)"),
+    (["American(p)", "Weapon(q)", "Sells(p,q,r)", "Hostile(r)"], "Criminal(p)")
+]
+
+def forward_chaining(facts, rules, query):
+
+    print("\nINITIAL FACTS")
+    for fact in facts:
+        print(fact)
+
+    print("\nFORWARD CHAINING STARTED")
+
+    step = 1
+
+    while True:
+        new = []
+
+        for i, (conditions, result) in enumerate(rules):
+
+            match = {}
+            matched_facts = []
+
+            for condition in conditions:
+                name = condition.split("(")[0]
+                args = condition.split("(")[1][:-1].split(",")
+
+                for fact in facts:
+                    if fact[0] != name or len(args) != len(fact)-1:
+                        continue
+
+                    temp = match.copy()
+                    valid = True
+
+                    for a, b in zip(args, fact[1:]):
+                        if a.islower():
+                            if a in temp and temp[a] != b:
+                                valid = False
+                                break
+                            temp[a] = b
+                        elif a != b:
+                            valid = False
+                            break
+
+                    if valid:
+                        match = temp
+                        matched_facts.append(fact)
+                        break
+                else:
+                    break
+            else:
+                name = result.split("(")[0]
+                args = result.split("(")[1][:-1].split(",")
+
+                final_args = tuple(match.get(a, a) for a in args)
+                inferred = (name, *final_args)
+
+                if inferred not in facts and inferred not in new:
+                    print(f"\nSTEP {step}")
+                    print("Rule applied:", i + 1)
+
+                    print("Facts matched:")
+                    for f in matched_facts:
+                        print(" ", f)
+
+                    print("Substitution:", match)
+                    print("Conclusion:", inferred)
+
+                    new.append(inferred)
+                    step += 1
+
+        if not new:
+            break
+
+        facts.extend(new)
+
+    print("\nFINAL KNOWLEDGE BASE")
+    for fact in facts:
+        print(fact)
+
+    return query in facts
+
+
+print("FOL FORWARD CHAINING")
+
+query = ("Criminal", "Robert")
+
+print("\nGoal:", query)
+
+if forward_chaining(facts, rules, query):
+    print("\nGOAL PROVED:", query)
+else:
+    print("\nGOAL NOT PROVED:", query)
+print("Atharva Jha 1WN24CS054")
